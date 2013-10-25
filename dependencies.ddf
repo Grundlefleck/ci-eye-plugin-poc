@@ -1,0 +1,14 @@
+show allResults
+
+{cieye-package} = org.netmelody.cieye
+{plugin-package} = com.github.grundlefleck
+
+[ci-eye-plugin] = ${plugin-package}.*
+check sets [ci-eye-plugin]
+
+[cieye-server] = ${cieye-package}.server.*
+[cieye-core-spies] = ${cieye-package}.spies.*
+
+check [ci-eye-plugin] independentOf [cieye-server]
+check [ci-eye-plugin] independentOf [cieye-core-spies]
+
