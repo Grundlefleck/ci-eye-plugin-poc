@@ -5,6 +5,7 @@
 
     <property name="build.dir"      value="${basedir}/build"/>
     <property name="lib.dir"        value="${basedir}/vendor/lib"/>
+    <property name="framework.dir"  value="${basedir}/vendor/framework"/>
     <property name="buildlib.dir"   value="${basedir}/vendor/buildlib"/>
 
     <tstamp><format property="build.number" pattern="yyyyMMddHHmmss" timezone="GMT"/></tstamp>
@@ -58,15 +59,19 @@
     <target name="jar-main" depends="clean,version">
         <path id="compile-main.req">
             <fileset dir="${lib.dir}" includes="**/*.jar"/>
+            <fileset dir="${framework.dir}" includes="**/*.jar"/>
         </path>
         <compile-module srcdir="${basedir}/src/main" destdir="${build.dir}/main" classpathref="compile-main.req"/>
 
-        <zip destfile="${build.dir}/main-deps.jar"><zipgroupfileset dir="${lib.dir}" includes="**/*.jar"/></zip>
+        <zip destfile="${build.dir}/main-deps.jar" whenempty="skip">
+        	<zipgroupfileset dir="${lib.dir}" includes="**/*.jar"/>
+        </zip>
 
         <jar destfile="${main.jar}">
             <fileset dir="${build.dir}/main"/>
             <fileset dir="${basedir}" includes="LICENSE NOTICE README"/>
-            <zipfileset src="${build.dir}/main-deps.jar" excludes="**/META-INF/**"/>
+            <zipfileset src="${build.dir}/main-deps.jar" excludes="**/META-INF/**" erroronmissingarchive="false"/>
+        	<fileset dir="${basedir}/src/main/resources" includes="**/META-INF/**"/>
             <manifest>
                 <attribute name="Built-By" value="${user.name}"/>
                 <attribute name="Implementation-Vendor" value="com.github.grundlefleck"/>
@@ -80,6 +85,7 @@
     <target name="jar-test" depends="clean,jar-main">
         <path id="compile-test.req">
             <fileset file="${main.jar}"/>
+        	<fileset dir="${framework.dir}" includes="**/*.jar"/>
             <fileset dir="${buildlib.dir}" includes="**/*.jar"/>
         </path>
         <compile-module srcdir="${basedir}/src/test" destdir="${build.dir}/test" classpathref="compile-test.req"/>
@@ -116,6 +122,7 @@
             <classpath>
               <pathelement location="${main.jar}"/>
               <pathelement location="${test.jar}"/>
+              <fileset dir="${framework.dir}"> <include name="**/*.jar"/> </fileset>
             </classpath>
             <formatter type="plain"/>
             <batchtest fork="yes" todir="${build.dir}/testreport">
@@ -133,6 +140,7 @@
         
         <classycleDependencyCheck definitionFile="dependencies.ddf" failOnUnwantedDependencies="true" includingClasses="com.github.grundlefleck.*">
             <fileset file="${main.jar}"/>
+        	<fileset dir="${framework.dir}"> <include name="**/*.jar"/> </fileset>
         </classycleDependencyCheck>
     </target>
 
