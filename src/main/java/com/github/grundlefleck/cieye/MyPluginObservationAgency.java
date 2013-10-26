@@ -1,5 +1,7 @@
 package com.github.grundlefleck.cieye;
 
+import static org.netmelody.cieye.core.domain.Status.UNDER_INVESTIGATION;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -19,6 +21,8 @@ import org.netmelody.cieye.core.observation.KnownOffendersDirectory;
 import org.netmelody.cieye.core.observation.ObservationAgency;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -72,7 +76,7 @@ public class MyPluginObservationAgency implements ObservationAgency {
 	}
 	
 	static class MonitoredFile {
-		private static final Map<String, Status> internalToCiEye = ImmutableMap.of(
+		private static final BiMap<String, Status> internalToCiEye = ImmutableBiMap.of(
 				"All Good", Status.GREEN, 
 				"Uh-oh", Status.BROKEN,
 				"Checking", Status.UNDER_INVESTIGATION);
@@ -101,19 +105,12 @@ public class MyPluginObservationAgency implements ObservationAgency {
 		
 		public void addNote(String note) {
 			try {
-				String withNote = String.format("%s%n%s%n", "Checking", note);
+				String withNote = String.format("%s%n%s%n", internalToCiEye.inverse().get(UNDER_INVESTIGATION), note);
 				Files.write(withNote, file, Charsets.UTF_8);
 			} catch (IOException e) {
 				LogKeeper.logbookFor(getClass()).error("Couldn't add note", e);
 			}
 		}
-	}
-	
-
-	public static void main(String[] args) {
-		ObservationAgency agency = new MyPluginObservationAgency();
-		
-		agency.canProvideSpyFor(new CiServerType("PLUGIN_DEMO"));
 	}
 
 }
